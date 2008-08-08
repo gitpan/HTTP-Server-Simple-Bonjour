@@ -2,7 +2,7 @@ package HTTP::Server::Simple::Bonjour;
 
 use strict;
 use 5.8.1;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp;
 use NEXT;
@@ -23,7 +23,7 @@ sub print_banner {
 
     $publisher->publish(
         name => $self->service_name,
-        type => '_http._tcp',
+        type => $self->service_type,
         port => $self->port,
         domain => 'local',
     );
@@ -36,6 +36,10 @@ sub service_name {
     require Sys::Hostname;
     return Sys::Hostname::hostname();
 }
+
+
+sub service_type { '_http._tcp' }
+
 
 1;
 __END__
@@ -51,10 +55,10 @@ HTTP::Server::Simple::Bonjour - Bonjour plugin for HTTP::Server::Simple
 =head1 SYNOPSIS
 
   package MyServer;
-  # You need to put ::Bonjour first so NEXT should work properly
+  # You need to put ::Bonjour first so NEXT can work properly
   use base qw( HTTP::Server::Simple::Bonjour HTTP::Server::Simple::CGI );
 
-  sub server_name { "My awesome webserver" }
+  sub service_name { "My awesome webserver" }
 
   MyServer->new->run;
 
@@ -64,9 +68,23 @@ HTTP::Server::Simple::Bonjour is an HTTP::Server::Simple plugin to
 publish the server name and TCP port via Bonjour so anyone in the
 local network can discover your web server.
 
+=head1 METHODS
+
+=head2 service_name 
+
+This method returns the name of the webserver your server wants to advertise
+
+=head2 service_type
+
+This method returns the bonjour service for your application.  Most HTTP 
+servers can safely leave this untouched. Override it and return something 
+of the form '_http._tcp' if you need to.
+
 =head1 AUTHOR
 
 Tatsuhiko Miyagawa E<lt>miyagawa@cpan.orgE<gt>
+
+Jesse Vincent
 
 =head1 LICENSE
 
@@ -75,6 +93,6 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<HTTP::Server::Simple> L<Net::Bonjour::Publish>
+L<HTTP::Server::Simple> L<Net::Rendezvous::Publish>
 
 =cut

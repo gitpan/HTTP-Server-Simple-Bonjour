@@ -5,7 +5,7 @@ package Test::Base;
 use 5.006001;
 use Spiffy 0.30 -Base;
 use Spiffy ':XXX';
-our $VERSION = '0.54';
+our $VERSION = '0.52';
 
 my @test_more_exports;
 BEGIN {
@@ -30,7 +30,7 @@ our @EXPORT = (@test_more_exports, qw(
     filters filters_delay filter_arguments
     run run_compare run_is run_is_deeply run_like run_unlike 
     WWW XXX YYY ZZZ
-    tie_output no_diag_on_only
+    tie_output
 
     find_my_self default_object
 
@@ -51,7 +51,6 @@ field block_delim =>
 field data_delim =>
       -init => '$self->data_delim_default';
 field _filters_delay => 0;
-field _no_diag_on_only => 0;
 
 field block_delim_default => '===';
 field data_delim_default => '---';
@@ -189,11 +188,6 @@ sub first_block() {
 sub filters_delay() {
     (my ($self), @_) = find_my_self(@_);
     $self->_filters_delay(defined $_[0] ? shift : 1);
-}
-
-sub no_diag_on_only() {
-    (my ($self), @_) = find_my_self(@_);
-    $self->_no_diag_on_only(defined $_[0] ? shift : 1);
 }
 
 sub delimiters() {
@@ -400,8 +394,6 @@ sub _choose_blocks {
     for my $hunk (@_) {
         my $block = $self->_make_block($hunk);
         if (exists $block->{ONLY}) {
-            diag "I found ONLY: maybe you're debugging?"
-                unless $self->_no_diag_on_only;
             return [$block];
         }
         next if exists $block->{SKIP};
@@ -585,15 +577,11 @@ sub run_filters {
             my $function = "main::$filter";
             no strict 'refs';
             if (defined &$function) {
-                local $_ = join '', @value;
-                my $old = $_;
+                $_ = join '', @value;
                 @value = &$function(@value);
                 if (not(@value) or 
                     @value == 1 and $value[0] =~ /\A(\d+|)\z/
                 ) {
-                    if ($value[0] && $_ eq $old) {
-                        Test::Base::diag("Filters returning numbers are supposed to do munging \$_: your filter '$function' apparently doesn't.");
-                    }
                     @value = ($_);
                 }
             }
@@ -648,4 +636,4 @@ sub _get_filters {
 
 __DATA__
 
-#line 1328
+#line 1298

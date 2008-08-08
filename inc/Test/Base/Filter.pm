@@ -214,8 +214,7 @@ sub lines {
 
 sub norm {
     $self->assert_scalar(@_);
-    my $text = shift;
-    $text = '' unless defined $text;
+    my $text = shift || '';
     $text =~ s/\015\012/\n/g;
     $text =~ s/\r/\n/g;
     return $text;
@@ -341,4 +340,4 @@ sub _write_to {
 
 __DATA__
 
-#line 639
+#line 638
